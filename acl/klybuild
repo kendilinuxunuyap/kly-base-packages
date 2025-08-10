@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+name="acl"
+version="2.3.1"
+description="The acl package contains utilities to administer Access Control Lists"
+source="https://download.savannah.nongnu.org/releases/acl/acl-$version.tar.xz"
+depends="attr"
+group="sys.apps"
+
+setup(){
+    cd $SOURCEDIR
+    ./configure --prefix=/usr \
+        --libdir=/usr/lib64
+}
+build(){
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+}

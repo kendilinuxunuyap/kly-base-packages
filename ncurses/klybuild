@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+version="6.4"
+so_ver="6"
+name="ncurses"
+depends="glibc"
+description="ncurses kütüphanesi"
+source="https://ftp.gnu.org/pub/gnu/ncurses/${name}-${version}.tar.gz"
+groups="sys.libs"
+setup()
+{
+	cd $SOURCEDIR
+	./configure \
+		--prefix=/usr \
+		--libdir=/lib64 \
+		--with-shared \
+		--disable-tic-depends \
+		--with-versioned-syms  \
+		--enable-widec \
+		--with-cxx-binding \
+        --with-cxx-shared \
+        --enable-pc-files \
+        --mandir=/usr/share/man \
+        --with-manpage-format=normal \
+        --with-xterm-kbs=del \
+        --with-pkg-config-libdir=/usr/lib64/pkgconfig
+
+    #    --without-ada
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+	cd $DESTDIR/lib64
+	ln -s libncursesw.so.6 libtinfow.so.6
+	ln -s libncursesw.so.6 libtinfo.so.6
+	ln -s libncursesw.so.6 libncurses.so.6
+    	
+    	# make sure that anything linking against it links against libncurses.so instead
+    	for lib in ncurses ncurses++ form panel menu; do
+		if [ ! -f "$DESTDIR/usr/lib64/pkgconfig/${lib}.pc" ]; then
+		    ln -sv ${lib}w.pc "$DESTDIR/usr/lib64/pkgconfig/${lib}.pc"
+		fi
+    	done
+    	
+    	 # make sure that anything linking against it links against libncursesw.so instead
+	for lib in tic tinfo tinfow ticw; do 
+		if [ ! -f "$DESTDIR/usr/lib64/pkgconfig/${lib}.pc" ]; then
+			    ln -sv ncursesw.pc "$DESTDIR/usr/lib64/pkgconfig/${lib}.pc"
+		fi
+	done
+
+	# legacy binary support
+    	for lib in libncursesw libncurses libtinfo libpanelw libformw libmenuw ; do
+        ln -sv ${lib}.so.${so_ver} ${lib}.so.5
+    	done
+
+}
+
+

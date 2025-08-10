@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+version="2.69"
+name="libcap"
+depends="glibc,acl,openssl"
+description="shell ve network copy"
+source="https://mirrors.edge.kernel.org/pub/linux/libs/security/linux-privs/libcap2/${name}-${version}.tar.xz"
+groups="net.misc"
+
+_common_make_options=(
+  CGO_CPPFLAGS="$CPPFLAGS"
+  CGO_CFLAGS="$CFLAGS"
+  CGO_CXXFLAGS="$CXXFLAGS"
+  CGO_LDFLAGS="$LDFLAGS"
+  CGO_REQUIRED="1"
+  GOFLAGS="-buildmode=pie -mod=readonly -modcacherw"
+  GO_BUILD_FLAGS="-ldflags '-compressdwarf=false -linkmode=external'"
+)
+
+setup()
+{
+cd $SOURCEDIR
+cap_opts=(
+	"${_common_make_options[@]}"
+    SUDO=""
+    prefix=/usr
+    KERNEL_HEADERS=include
+    lib=lib64
+    sbindir=bin
+    RAISE_SETFCAP=no
+    #$(use_opt pam PAM_CAP=yes PAM_CAP=no)
+    )
+
+}
+build()
+{
+	cd $SOURCEDIR 
+	make ${cap_opts[@]} DYNAMIC=yes
+}
+package()
+{
+	make "${_common_make_options[@]}"  \
+		DESTDIR="$DESTDIR" \
+		RAISE_SETFCAP=no \
+		prefix=/usr \
+		lib=lib64 \
+		sbindir=bin \
+		install
+	
+	#mv $DESTDIR/lib64 $DESTDIR/usr/lib64
+}

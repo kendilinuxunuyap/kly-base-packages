@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+version="3.2.0"
+name="openssl"
+depends="glibc,zlib"
+description="opnssl"
+source="https://www.openssl.org/source/${name}-${version}.tar.gz"
+groups="dev.libs"
+setup()
+{
+	cp -prfv $PACKAGEDIR/update-certdata.sh /tmp/kly/build/update-certdata
+	wget -O /tmp/kly/build/cacert.pem https://curl.haxx.se/ca/cacert.pem
+	cd $SOURCEDIR
+	./config --prefix=/usr  \
+         --openssldir=/etc/ssl \
+         --libdir=/usr/lib64 \
+         shared linux-x86_64
+}
+build()
+{
+	make depend
+	make
+}
+package()
+{
+	mkdir -p "${DESTDIR}/etc/ssl/" "${DESTDIR}/sbin/"
+	install ../update-certdata "${DESTDIR}/sbin/update-certdata"
+	install ../cacert.pem "${DESTDIR}/etc/ssl/cert.pem"
+	make DESTDIR="${DESTDIR}" \
+	install_sw \
+	install_ssldirs \
+	install_man_docs  $jobs
+}
+
+

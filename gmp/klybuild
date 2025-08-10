@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+version="6.3.0"
+name="gmp"
+depends="glibc"
+description="Library for arbitrary-precision arithmetic on different type of numbers"
+source="https://gmplib.org/download/gmp/gmp-${version}.tar.xz"
+groups="dev.libs"
+
+setup()
+{
+	cd $SOURCEDIR
+    ./configure --prefix=/usr \
+	--libdir=/usr/lib64 \
+		$(use_opt cxx --enable-cxx --disable-cxx) \
+	--enable-fat
+}
+build()
+{
+	make
+}
+package()
+{
+	make install DESTDIR=${DESTDIR}
+}
+
+

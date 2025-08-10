@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+version="5.2.21"
+name="bash"
+depends="glibc,readline,ncurses"
+description="GNU/Linux dağıtımında ön tanımlı kabuk"
+source="https://ftp.gnu.org/pub/gnu/bash/${name}-${version}.tar.gz"
+groups="app.shell"
+setup()
+{
+	cd $SOURCEDIR
+	./configure --prefix=/usr \
+		--libdir=/usr/lib64 \
+		--bindir=/bin \
+		--with-curses \
+		--enable-readline \
+		--without-bash-malloc
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+	cd $DESTDIR/bin
+	ln -s bash sh
+}
+
+

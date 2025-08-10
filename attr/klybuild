@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+name="attr"
+version="2.5.1"
+description="The attr package contains utilities to administer the extended attributes on filesystem objects."
+source="https://mirror.rabisu.com/savannah-nongnu/attr/attr-${version}.tar.gz"
+depends=""
+group="sys.apps"
+
+
+setup(){
+    cd $SOURCEDIR
+    ./configure --prefix=/usr \
+        --sysconfdir=/etc \
+        --libdir=/usr/lib64
+}
+
+build(){
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+}
+

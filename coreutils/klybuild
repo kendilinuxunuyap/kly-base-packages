@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+name="coreutils"
+version="9.5"
+description="The basic file, shell and text manipulation utilities of the GNU operating system"
+source="https://ftp.gnu.org/gnu/coreutils/coreutils-$version.tar.gz"
+depends="acl,attr,gmp,libcap,openssl"
+group="sys.apps"
+
+
+export CFLAGS="-static-libgcc -static-libstdc++ -fPIC"
+#set FORCE_UNSAFE_CONFIGURE=1
+setup(){
+
+  FORCE_UNSAFE_CONFIGURE=1  $SOURCEDIR/configure --prefix=/usr \
+        --libdir=/usr/lib64 \
+        --libexecdir=/usr/libexec \
+        --enable-largefile \
+        --enable-single-binary=symlinks \
+        --enable-no-install-program=groups,hostname,kill,uptime \
+        --without-openssl
+
+}
+
+build(){
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+}
+

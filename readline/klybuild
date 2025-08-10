@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+version="8.2"
+name="readline"
+depends="glibc"
+description="readline kütüphanesi"
+source="https://ftp.gnu.org/pub/gnu/readline/${name}-${version}.tar.gz"
+groups="sys.apps"
+
+setup(){
+	cp -prvf $PACKAGEDIR/files/* /tmp/kly/build/
+	
+	cd $SOURCEDIR
+	./configure --prefix=/usr \
+		--libdir=/usr/lib64
+}
+
+build(){
+	make SHLIB_LIBS="-L/tools/lib -lncursesw"
+}
+
+package(){
+	make SHLIB_LIBS="-L/tools/lib -lncursesw" DESTDIR="$DESTDIR" install pkgconfigdir="/usr/lib64/pkgconfig"
+	
+	install -Dm644 ../inputrc "$DESTDIR"/etc/inputrc
+}
