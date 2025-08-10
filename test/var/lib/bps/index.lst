@@ -1,0 +1,3 @@
+name="live-boot":version="1230131":depends="glibc,acl,openssl"
+name="live-config":version="11.0.4":depends="glibc,acl,openssl"
+name="initramfs-tools":version="0.142":depends="glibc,readline,ncurses"

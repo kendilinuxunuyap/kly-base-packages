@@ -1,0 +1,8 @@
+{"timestamp":2843683,"category":"nimbus_events","name":"enrollment","extra":{"experiment_type":"rollout","branch":"enable-csv-import","glean_timestamp":"1719386605189","experiment":"csv-import-release-rollout"}}
+{"timestamp":2843705,"category":"nimbus_events","name":"enrollment","extra":{"experiment_type":"rollout","glean_timestamp":"1719386605211","branch":"rollout","experiment":"ech-roll-out"}}
+{"timestamp":2843895,"category":"nimbus_events","name":"enrollment","extra":{"experiment_type":"rollout","experiment":"upgrade-spotlight-rollout","branch":"treatment","glean_timestamp":"1719386605401"}}
+{"timestamp":2843972,"category":"nimbus_events","name":"enrollment","extra":{"experiment":"mixed-content-level-2-roll-out-release-115","experiment_type":"rollout","glean_timestamp":"1719386605478","branch":"control"}}
+{"timestamp":2844066,"category":"nimbus_events","name":"enrollment","extra":{"branch":"rollout","glean_timestamp":"1719386605573","experiment":"phc-rollout","experiment_type":"rollout"}}
+{"timestamp":2844119,"category":"nimbus_events","name":"enrollment","extra":{"branch":"treatment","experiment":"highlighting-in-pdfs-rollout","experiment_type":"rollout","glean_timestamp":"1719386605625"}}
+{"timestamp":2844137,"category":"nimbus_events","name":"enrollment","extra":{"glean_timestamp":"1719386605643","branch":"delivery","experiment":"long-term-holdback-2024-h1-velocity-desktop","experiment_type":"nimbus"}}
+{"timestamp":2844178,"category":"nimbus_events","name":"enrollment","extra":{"glean_timestamp":"1719386605684","branch":"rollout","experiment":"consolidated-search-configuration-row-desktop-relaunch","experiment_type":"rollout"}}
