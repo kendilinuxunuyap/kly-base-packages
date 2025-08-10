@@ -1,6 +1,0 @@
-#!/bin/sh
-cd /etc/init.d
-
-ln -s agetty agetty.tty1
-cp -prfv /usr/lib/* /lib/
-rc-update add agetty.tty1 default
