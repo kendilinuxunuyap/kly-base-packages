@@ -3,14 +3,14 @@ name="openssh"
 version="9.6p1"
 description="OpenBSD ssh server & client"
 source="https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$version.tar.gz"
-depends="zlib,libxcrypt,openssl,libmd,libssh"     
+depends="zlib,libxcrypt,openssl,libmd,libssh"
+        
 group="net.misc"
 
 setup(){
-	cp -prfv $PACKAGEDIR/files/ /tmp/kly/build/
-
-	cd $SOURCEDIR
-    ./configure --prefix=/usr \
+	cp -prfv $PACKAGEDIR/files/ $SOURCEDIR/
+	cd $BUILDDIR
+    ../${name}-${version}/configure --prefix=/usr \
         --libdir=/usr/lib64/ \
         --sysconfdir=/etc/ssh \
         --without-pam \
@@ -26,9 +26,10 @@ build(){
 }
 
 package(){
+cd $BUILDDIR
     make install DESTDIR=$DESTDIR
     mkdir -p "$DESTDIR"/etc/{passwd,group,sysconf,init,conf}.d
-    install -m755 -D ../files/sshd.initd "$DESTDIR"/etc/init.d/sshd
-    install -m755 -D ../files/sshd.confd "$DESTDIR"/etc/conf.d/sshd
+    install -m755 -D $SOURCEDIR/files/sshd.initd "$DESTDIR"/etc/init.d/sshd
+    install -m755 -D $SOURCEDIR/files/sshd.confd "$DESTDIR"/etc/conf.d/sshd
 }
 
