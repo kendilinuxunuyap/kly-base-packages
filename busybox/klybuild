@@ -24,9 +24,11 @@ package()
 	mkdir -p $DESTDIR/bin
 	install busybox ${DESTDIR}/bin/busybox
 	# install udhcpc script and service
- mkdir -p ${DESTDIR}/usr/share/udhcpc/ ${DESTDIR}/etc/init.d/
+ 	mkdir -p ${DESTDIR}/usr/share/udhcpc/ ${DESTDIR}/etc/init.d/
     install ../files/udhcpc.script ${DESTDIR}/usr/share/udhcpc/default.script
     install ../files/udhcpc.openrc ${DESTDIR}/etc/init.d/udhcpc
+    cd $DESTDIR/bin&&ln -s busybox hostname
+    cd $DESTDIR/bin&&ln -s busybox udhcpc
 }
 
 
