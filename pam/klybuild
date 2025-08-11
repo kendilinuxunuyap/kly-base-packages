@@ -5,11 +5,9 @@ depends="libtirpc,libxcrypt,libnsl,audit"
 description="PAM (Pluggable Authentication Modules) library'"
 source="https://github.com/linux-pam/linux-pam/releases/download/v$version/Linux-PAM-$version.tar.xz"
 groups="sys.libs"
-
 setup()
 {
-	cd $SOURCEDIR
-    ./configure --prefix=/usr \
+    ../${name}-${version}/configure --prefix=/usr \
         --sbindir=/usr/sbin \
         --libdir=/usr/lib64 \
         --enable-securedir=/usr/lib64/security \

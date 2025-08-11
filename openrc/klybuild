@@ -7,9 +7,10 @@ depends=""
 group="sys.apps,pam"
 
 setup(){
-	cp -prvf $PACKAGEDIR/files/ /tmp/kly/build/
-
-	cp -prvf $PACKAGEDIR/extras/ /tmp/kly/build/
+	mkdir -p /tmp/kly/build/files
+	cp ${dizin}/${paket}/files/* /tmp/kly/build/files/
+	mkdir -p /tmp/kly/build/extras
+	cp ${dizin}/${paket}/extras/* /tmp/kly/build/extras/
 	cd $SOURCEDIR
     meson setup $BUILDDIR \
         --sysconfdir=/etc \
@@ -20,7 +21,7 @@ setup(){
         -Dzsh-completions=true \
         -Dbash-completions=true \
         -Dpam=true \
-		-Dselinux=disabled \
+	-Dselinux=disabled \
         -Dpkgconfig=true
 
 }
@@ -39,6 +40,9 @@ package(){
     rm -f ${DESTDIR}/etc/runlevels/*/*
     rm ${DESTDIR}//etc/init.d/functions.sh
     ln -s ../../lib/rc/sh/functions.sh ${DESTDIR}/etc/init.d/functions.sh
+    # install sysconf script
+    mkdir -p ${DESTDIR}/etc/sysconf.d/
+    install ../files/openrc.sysconf ${DESTDIR}/etc/sysconf.d/openrc
 
     # move /share to /usr/share
     mkdir -p ${DESTDIR}/usr ${DESTDIR}/sbin

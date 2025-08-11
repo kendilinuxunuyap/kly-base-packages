@@ -17,7 +17,7 @@ echo -e "dip:x:123:">>/etc/group
     chown root /etc/group
     chgrp root /etc/group
     else
-    chmod 644 /etc/group
+    chmod 644/etc/group
     chown root /etc/group
     chgrp root /etc/group
 fi

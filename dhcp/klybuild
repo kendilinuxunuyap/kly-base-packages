@@ -2,38 +2,29 @@
 name="dhcp"
 version="4.4.3"
 description="GNU regular expression matcher"
-source="https://downloads.isc.org/isc/dhcp/${version}/dhcp-${version}.tar.gz"
+source="https://downloads.isc.org/isc/dhcp/4.4.3/dhcp-4.4.3.tar.gz"
 depends=""
-groups="net.misc"
+group="sys.apps"
 
 setup(){
-	cp -prvf ${PACKAGEDIR}/files $SOURCEDIR/
-	cd $SOURCEDIR
-	./configure --prefix=/usr \
-		--libdir=/usr/lib64/ \
-		--sbindir=/usr/bin \
-		--sysconfdir=/etc \
-		--enable-binary-leases \
-		--enable-paranoia \
-		--with-srv-lease-file=/var/lib64/dhcp/dhcpd.leases \
-		--with-srv6-lease-file=/var/lib64/dhcp/dhcpd6.leases \
-		--with-cli-lease-file=/var/lib64/dhclient/dhclient.leases \
-		--with-cli6-lease-file=/var/lib64/dhclient/dhclient6.leases
-		
-		#--with-ldap \ --with-ldapcrypto \
+    $SOURCEDIR/configure --prefix=/usr \
+        --libdir=/usr/lib64/
 }
+
 build(){
-	make
+    make
 }
+
 package(){
-	make install DESTDIR=$DESTDIR
-	install $SOURCEDIR/client/scripts/linux $DESTDIR/sbin/dhclient-script
-	mkdir -p $DESTDIR/etc/init.d
-	for level in boot default nonetwork shutdown sysinit ; do
-	mkdir -p ${DESTDIR}/etc/runlevels/$level
-	done
-	install -Dm755 $SOURCEDIR/files/dhclient.init.d $DESTDIR/etc/init.d/dhclient
-	install -Dm755 $SOURCEDIR/files/dhclient.init.d ${DESTDIR}/etc/runlevels/default/dhclient
-	${DESTDIR}/sbin/ldconfig -r ${DESTDIR}
+	mkdir -p $DESTDIR/sbin/
+    make install DESTDIR=$DESTDIR
+    install  $SOURCEDIR/client/scripts/linux $DESTDIR/sbin/dhclient-script
+    mkdir -p $DESTDIR/etc/init.d
+    
+    for level in boot default nonetwork shutdown sysinit ; do
+    mkdir -p ${DESTDIR}/etc/runlevels/$level
+    done
+    install  $PACKAGEDIR/dhclient.init.d $DESTDIR/etc/init.d/dhclient
+     install $PACKAGEDIR/dhclient.init.d ${DESTDIR}/etc/runlevels/default/dhclient
 }
 

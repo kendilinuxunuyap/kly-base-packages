@@ -9,7 +9,7 @@ group="sys.kernel"
 
 setup(){
 
-	cp -prvf $PACKAGEDIR/files/ /tmp/bps/build/
+	cp -prvf $PACKAGEDIR/files/ /tmp/kly/build/
 	cd $SOURCEDIR
 	
 	patch -Np1 -i ../files/patch-$version

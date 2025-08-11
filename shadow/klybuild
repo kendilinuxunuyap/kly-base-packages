@@ -7,9 +7,7 @@ depends="pam,libxcrypt,acl,attr"
 group="sys.apps"
 
 setup(){
-	tempPath="${PATH}"
-	export PATH=$PATH:/usr/sbin/
-	
+	mkdir -p /tmp/kly/build/files
 	cp -prvf $PACKAGEDIR/files/ /tmp/kly/build/
 	cd $SOURCEDIR
 	autoreconf -fiv      
@@ -34,19 +32,10 @@ build(){
 
 package(){
     make install DESTDIR=$DESTDIR
-    mkdir -p "${DESTDIR}/etc" "${DESTDIR}/etc/default/"
-    
-	sed -i "/.*selinux.*/d" ${DESTDIR}/etc/pam.d/*
-	install -vDm 600 ../files/useradd.defaults "${DESTDIR}/etc/default/useradd"
-	install -vDm 600 ../files/system-auth "${DESTDIR}/etc/pam.d/system-auth"
-	install -vDm 600 ../files/shadow "${DESTDIR}/etc/shadow"
-	install -vDm 644 ../files/group "${DESTDIR}/etc/group"
-	
-	if [ ! -f ${DESTDIR}/etc/group ] ; then install -vDm 600 $SOURCEDIR/files/group "${DESTDIR}/etc/group"; fi
-	if [ ! -f ${DESTDIR}/etc/shadow ] ; then echo "root:*::0:::::" > ${DESTDIR}/etc/shadow; fi
-	chown root ${DESTDIR}/etc/group ${DESTDIR}/etc/shadow
-	chgrp root ${DESTDIR}/etc/group ${DESTDIR}/etc/shadow
-	if [ ! -f "${DESTDIR}/etc/passwd" ]; then echo -e "root:x:0:0:root:/root:/bin/sh">${DESTDIR}/etc/passwd; fi
-	export PATH="$tempPath"
+    # remove selinux stuff
+    mkdir -p "${DESTDIR}/etc/default/"
+    sed -i "/.*selinux.*/d" ${DESTDIR}/etc/pam.d/*
+    install -vDm 600 ../files/useradd.defaults "${DESTDIR}/etc/default/useradd"
+    install -vDm 600 ../files/system-auth "${DESTDIR}/etc/pam.d/system-auth"
 }
 
