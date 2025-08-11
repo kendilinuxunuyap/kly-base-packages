@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+version="7.2"
+name="nano"
+depends="glibc,readline,ncurses,file"
+description="şıkıştırma kütüphanesi"
+source="https://www.nano-editor.org/dist/v7/${name}-${version}.tar.xz"
+groups="app.editor"
+
+setup()
+{
+	cd $SOURCEDIR
+	./configure --prefix=/usr
+	
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+	cd $DESTDIR
+	mkdir -p $DESTDIR/lib
+	echo "INPUT(-lncursesw)" > $DESTDIR/lib/libncurses.so
+}
+
+

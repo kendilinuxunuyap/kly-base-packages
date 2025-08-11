@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+version="4.2.0"
+name="mpfr"
+depends="glibc,gmp"
+description="multiple precision floating-point computation"
+source="https://ftp.gnu.org/gnu/mpfr/mpfr-${version}.tar.xz"
+groups="dev.libs"
+
+setup()
+{
+	cd $SOURCEDIR
+    ./configure --prefix=/usr \
+		--libdir=/usr/lib64 \
+		--enable-shared \
+		--enable-static \
+		--disable-maintainer-mode \
+		--enable-thread-safe
+}
+build()
+{
+	make
+}
+package()
+{
+	make install DESTDIR=${DESTDIR}
+}
+
+

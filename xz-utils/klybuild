@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+name="xz-utils"
+version="5.4.5"
+description="lzma compression utilities"
+source="https://tukaani.org/xz/xz-${version}.tar.gz"
+md5sums="66f82a9fa24623f5ea8a9ee6b4f808e2"
+depends="doxygen,po4a"
+group="app.arch"
+
+setup(){
+    cd $SOURCEDIR
+    ./configure --prefix=/usr \
+		--libdir=/usr/lib64 \
+		--enable-static \
+		--enable-shared \
+		--enable-doc \
+		--enable-nls
+}
+build(){
+    make
+}
+package(){
+    make install DESTDIR=$DESTDIR
+}

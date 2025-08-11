@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+name="elfutils"
+version="0.190"
+description="Libraries/utilities to handle ELF objects (drop in replacement for libelf)"
+source="https://sourceware.org/elfutils/ftp/${version}/elfutils-${version}.tar.bz2"
+depends="bzip2,xz-utils,zstd,zlib"
+group="dev.libs"
+
+setup(){
+	cd $SOURCEDIR
+    ./configure --prefix=/usr \
+        --libdir=/usr/lib64 \
+		--enable-shared \
+		--disable-debuginfod \
+		--enable-libdebuginfod=dummy \
+		--disable-thread-safety \
+		--disable-valgrind \
+		--disable-nls \
+		--program-prefix="eu-" \
+		--with-bzlib \
+		--with-lzma 
+}
+
+build(){
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+}
+

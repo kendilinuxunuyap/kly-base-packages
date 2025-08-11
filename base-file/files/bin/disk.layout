@@ -1,0 +1,5 @@
+# partition table of /dev/sda
+unit: sectors
+label: gpt
+,1GiB
+,

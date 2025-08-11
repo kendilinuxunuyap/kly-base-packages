@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+version="0.8.3"
+name="libcap-ng"
+depends="glibc,acl,openssl,libtool"
+description="shell ve network copy"
+source="https://github.com/stevegrubb/libcap-ng/archive/refs/tags/v${version}.zip"
+groups="sys.libs"
+setup()
+{	
+	cd $SOURCEDIR
+	autoreconf -fvi
+
+	./configure --prefix=/usr \
+	  --libdir=/usr/lib64 \
+	  --without-python \
+      --without-python3
+	
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+}
+
+

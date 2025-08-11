@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+version="11.0.4"
+name="live-config"
+depends="glibc,acl,openssl"
+description="shell ve network copy"
+source="https://salsa.debian.org/live-team/live-config/-/archive/debian/11.0.4/live-config-debian-11.0.4.tar.gz"
+groups="sys.kernel"
+setup()
+{
+	cd $SOURCEDIR
+	
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+}
+
+

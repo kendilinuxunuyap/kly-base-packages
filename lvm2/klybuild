@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+name="lvm2"
+version="2_03_21"
+description="User-land utilities for LVM2 (device-mapper) software"
+source="https://github.com/lvmteam/lvm2/archive/refs/tags/v$version.tar.gz"
+depends="libaio"
+builddepend=""
+group="sys.fs"
+
+	setup(){
+		mkdir -p $SOURCEDIR
+		cd $SOURCEDIR
+		#dosya indiriliyor
+		wget -O lvm2.kly https://github.com/kendilinuxunuyap/kly-binary-packages/raw/refs/heads/master/ext-lvm2/ext-lvm2-2_03_21.kly
+		# tar -xf lvm2.kly
+		tar -xf lvm2.kly
+		tar -xf rootfs.tar.xz -C $BUILDDIR
+	}
+	build(){
+	echo ""
+	}
+	package(){
+		cd $SOURCEDIR
+		cp -prfv $BUILDDIR/* ${DESTDIR}/
+		mkdir -p $DESTDIR/lib64
+		cd $DESTDIR/lib64
+		ln -s ../usr/lib64/libdevmapper.so.1.02 libdevmapper.so.1.02.1
+		${DESTDIR}/sbin/ldconfig -r ${DESTDIR}
+		# sistem guncelleniyor
+	}
+

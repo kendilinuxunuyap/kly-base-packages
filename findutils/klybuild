@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+name="findutils"
+version="4.9.0"
+description="GNU utilities for finding files"
+source="https://ftp.gnu.org/gnu/findutils/findutils-$version.tar.xz"
+depends=""
+group="sys.apps"
+
+
+setup(){
+    cd $SOURCEDIR
+    ./configure --prefix=/usr \
+        --libdir=/usr/lib64/
+}
+
+build(){
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+}
+

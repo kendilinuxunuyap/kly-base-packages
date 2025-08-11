@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+name="grub"
+version="2.12"
+description="GNU GRand Unified Bootloader"
+source="https://ftp.gnu.org/gnu/grub/grub-$version.tar.xz"
+depends="glibc,readline,ncurses,xz-utils,efibootmgr"
+builddepend="rsync,freetype,ttf-dejavu"
+group="sys.boot"
+uses=(efi bios)
+uses_extra=(ia32)
+dontstrip=1
+efi_dp=(efibootmgr)
+ia32_dp=(efibootmgr)
+
+unset CFLAGS
+unset CXXFLAGS
+
+get_grub_opt(){
+    echo -n "--disable-efiemu "
+    if [[ "$1" == "efi" ]] ; then
+        echo -n "--with-platform=efi --target=x86_64"
+    elif [[ "$1" == "ia32" ]] ; then
+        echo -n "--with-platform=efi --target=i386"
+    elif [[ "$1" == "bios" ]] ; then
+        echo -n "--with-platform=pc"
+    fi
+}
+
+
+setup(){
+cd /tmp/kly/build
+ echo depends bli part_gpt > $SOURCEDIR/grub-core/extra_deps.lst
+    for tgt in ${uses[@]} ; do
+       # if ! use $tgt ; then
+        #    continue
+       # fi
+        cp -prfv $name-$version $tgt
+    done
+    
+    for tgt in ${uses[@]} ; do
+        #if ! use $tgt ; then
+        #    continue
+       # fi
+        cd $tgt
+        autoreconf -fvi
+        ./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --libdir=/usr/lib64/ \
+            --disable-nls \
+            --disable-werror \
+            --disable-grub-themes \
+            $(get_grub_opt $tgt)
+        cd ..
+    done
+}
+
+build(){
+    for tgt in ${uses[@]} ; do
+        #if ! use $tgt ; then
+         #   continue
+        #fi
+        make $jobs -C $tgt
+    done
+}
+
+package(){
+    for tgt in ${uses[@]} ; do
+       # if ! use $tgt ; then
+        #    continue
+        #fi
+        make $jobs -C $tgt install DESTDIR=$DESTDIR
+    done
+    # default grub config
+	mkdir -p $DESTDIR/etc/default $DESTDIR/usr/bin/
+	{
+		echo 'GRUB_DISTRIBUTOR=""'
+		echo 'GRUB_TERMINAL_OUTPUT=console'
+		echo 'GRUB_CMDLINE_LINUX_DEFAULT="quiet"'
+		echo 'GRUB_CMDLINE_LINUX=""'
+		echo 'GRUB_DEFAULT=0'
+		echo 'GRUB_TIMEOUT=5'
+		echo 'GRUB_DISABLE_SUBMENU=y'
+		echo 'GRUB_DISABLE_OS_PROBER=true'
+		echo 'GRUB_DISABLE_RECOVERY=true'
+	} > $DESTDIR/etc/default/grub
+    echo "#!/bin/sh" > $DESTDIR/usr/bin/update-grub
+    echo "grub-mkconfig -o /boot/grub/grub.cfg" >> $DESTDIR/usr/bin/update-grub
+    chmod 755 $DESTDIR/usr/bin/update-grub
+}

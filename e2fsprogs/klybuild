@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+version="1.47.0"
+name="e2fsprogs"
+depends="glibc,readline,ncurses"
+description="modül ve sistem iletişimi sağlayan paket"
+source="https://mirrors.edge.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/v${version}/${name}-${version}.tar.xz"
+groups="sys.fs"
+setup()
+{
+	cd $SOURCEDIR
+	./configure --prefix=/usr \
+	    --libdir=/usr/lib64/ \
+		--libexecdir=/usr/lib64 \
+		--sysconfdir=/etc \
+		--sbindir=/usr/bin \
+		--enable-elf-shlibs \
+		--enable-symlink-install \
+		--disable-fsck \
+		--disable-uuidd \
+		--disable-libuuid \
+		--disable-libblkid \
+		--disable-nls \
+		--enable-lto
+
+}
+build()
+{
+	make 
+	# regenerate locale files
+	find po/ -name '*.gmo' -delete
+	make -C po update-gmo
+}
+package()
+{
+	make install install-libs DESTDIR=$DESTDIR
+	rm -rf $DESTDIR/usr/share/man/man8/fsck.8
+	
+	mv $DESTDIR/lib/* $DESTDIR/usr/lib64
+	rmdir $DESTDIR/lib
+}
+
+

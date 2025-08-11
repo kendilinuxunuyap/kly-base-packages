@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+name="shadow"
+version="4.13"
+description="Password and account management tool suite with support for shadow files and PAM"
+source="https://github.com/shadow-maint/shadow/releases/download/$version/shadow-$version.tar.xz"
+depends="pam,libxcrypt,acl,attr"
+group="sys.apps"
+
+setup(){
+	tempPath="${PATH}"
+	export PATH=$PATH:/usr/sbin/
+	
+	cp -prvf $PACKAGEDIR/files/ /tmp/kly/build/
+	cd $SOURCEDIR
+	autoreconf -fiv      
+        ./configure --prefix=/usr \
+        --libdir=/usr/lib64 \
+        --sysconfdir=/etc \
+        --bindir=/usr/bin \
+        --sbindir=/usr/sbin \
+        --disable-account-tools-setuid \
+        --without-sssd \
+        --with-fcaps \
+        --with-libpam \
+        --without-group-name-max-length \
+        --with-bcrypt \
+        --with-yescrypt \
+        --without-selinux
+}
+
+build(){
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+    mkdir -p "${DESTDIR}/etc" "${DESTDIR}/etc/default/"
+    
+	sed -i "/.*selinux.*/d" ${DESTDIR}/etc/pam.d/*
+	install -vDm 600 ../files/useradd.defaults "${DESTDIR}/etc/default/useradd"
+	install -vDm 600 ../files/system-auth "${DESTDIR}/etc/pam.d/system-auth"
+	install -vDm 600 ../files/shadow "${DESTDIR}/etc/shadow"
+	install -vDm 644 ../files/group "${DESTDIR}/etc/group"
+	
+	if [ ! -f ${DESTDIR}/etc/group ] ; then install -vDm 600 $SOURCEDIR/files/group "${DESTDIR}/etc/group"; fi
+	if [ ! -f ${DESTDIR}/etc/shadow ] ; then echo "root:*::0:::::" > ${DESTDIR}/etc/shadow; fi
+	chown root ${DESTDIR}/etc/group ${DESTDIR}/etc/shadow
+	chgrp root ${DESTDIR}/etc/group ${DESTDIR}/etc/shadow
+	if [ ! -f "${DESTDIR}/etc/passwd" ]; then echo -e "root:x:0:0:root:/root:/bin/sh">${DESTDIR}/etc/passwd; fi
+	export PATH="$tempPath"
+}
+

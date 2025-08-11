@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+name="openrc"
+version="0.53"
+description="The OpenRC init system"
+source="https://github.com/OpenRC/openrc/archive/refs/tags/$version.zip"
+depends=""
+group="sys.apps,pam"
+
+setup(){
+	cp -prvf $PACKAGEDIR/files/ /tmp/kly/build/
+
+	cp -prvf $PACKAGEDIR/extras/ /tmp/kly/build/
+	cd $SOURCEDIR
+    meson setup $BUILDDIR \
+        --sysconfdir=/etc \
+        --prefix=/ \
+        --libdir=/lib64 \
+        --includedir=/usr/include \
+        -Ddefault_library=both \
+        -Dzsh-completions=true \
+        -Dbash-completions=true \
+        -Dpam=true \
+		-Dselinux=disabled \
+        -Dpkgconfig=true
+
+}
+
+build(){
+    #ninja -C $BUILDDIR
+    meson compile -C $BUILDDIR
+}
+
+package(){
+    export DESTDIR=${DESTDIR}//
+    #DESTDIR=$DESTDIR ninja -C $BUILDDIR install
+    DESTDIR="$DESTDIR" meson install --no-rebuild -C $BUILDDIR
+    
+    # disable all services
+    rm -f ${DESTDIR}/etc/runlevels/*/*
+    rm ${DESTDIR}//etc/init.d/functions.sh
+    ln -s ../../lib/rc/sh/functions.sh ${DESTDIR}/etc/init.d/functions.sh
+
+    # move /share to /usr/share
+    mkdir -p ${DESTDIR}/usr ${DESTDIR}/sbin
+    mv ${DESTDIR}/{,usr}/share
+    # reboot and poweroff script
+    install ../files/reboot ${DESTDIR}/sbin/reboot
+    install ../files/poweroff ${DESTDIR}/sbin/poweroff
+    ln -s openrc-shutdown ${DESTDIR}/sbin/shutdown
+    # install extras
+    mkdir -p ${DESTDIR}/usr/libexec
+    install ../extras/disable-secondary-gpu.sh ${DESTDIR}/usr/libexec/disable-secondary-gpu
+    install ../extras/disable-secondary-gpu.initd ${DESTDIR}/etc/init.d
+    install ../extras/backlight-restore.initd ${DESTDIR}/etc/init.d
+    install ../files/0modules.init.d ${DESTDIR}/etc/init.d/0modules
+    
+    for level in boot default nonetwork shutdown sysinit ; do
+    mkdir -p ${DESTDIR}/etc/runlevels/$level
+    done
+    touch ${DESTDIR}/etc/fstab
+    install ../files/0modules.init.d ${DESTDIR}/etc/init.d/0modules
+    install ../files/0modules.init.d ${DESTDIR}/etc/runlevels/default/0modules
+    
+    install ${DESTDIR}/etc/init.d/hostname ${DESTDIR}/etc/runlevels/default/hostname
+    cd ${DESTDIR}/etc/init.d/
+    ln -s agetty agetty.tty1
+    install ${DESTDIR}/etc/init.d/agetty.tty1 ${DESTDIR}/etc/runlevels/default/agetty.tty1
+    #mv  ${DESTDIR}/lib  ${DESTDIR}/lib64
+    
+}
+

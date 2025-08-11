@@ -1,0 +1,136 @@
+#!/bin/sh
+echo "*********************eudev çalıştırıldı ******************************"
+/bin/udv
+echo "*********************ek modüller yüklendi ******************************"
+DISK=sda
+debug=false
+
+modprobe loop
+modprobe ext4
+fallback(){
+        echo -e "\033[31;1mInstallation failed.\033[;0m"
+        echo -e "Creating a shell for debuging. Good luck :D"
+        PS1="\[\033[32;1m\]>>>\[\033[;0m\]" /bin/bash --norc --noprofile
+        if [[ $$ -eq 0 ]] ; then
+            echo o > /proc/sysrq-trigger
+        else
+            exit 1
+        fi
+}
+ldconfig
+mkdir -p hedef
+mkdir -p kaynak
+mkdir -p cdrom
+
+echo "*********************disk bölümleri silindi ******************************"
+    
+  dd if=/dev/zero of=/dev/${DISK} bs=512 count=1
+    sync && sleep 1
+
+        yes | parted /dev/${DISK} mktable msdos || fallback
+        yes | parted /dev/${DISK} mkpart primary fat32 1 "1024MB" || fallback
+        yes | parted /dev/${DISK} mkpart primary fat32 1024MB "100%" || fallback
+        sync && sleep 1
+        yes | mkfs.vfat /dev/${DISK}1 || fallback
+        sync && sleep 1
+        yes |e2fsck -f /dev/sda2
+         sync && sleep 1
+	yes |tune2fs -O ^metadata_csum /dev/sda2
+	 sync && sleep 1
+        yes | mkfs.ext4  /dev/${DISK}2 || fallback
+        yes | parted /dev/${DISK} set 1 esp on || fallback
+        sync && sleep 1
+        mount /dev/${DISK}2  /hedef || fallback
+        mkdir -p /hedef/boot 
+        mount /dev/${DISK}1 /hedef/boot || fallback
+echo "********************* kurulum başladı******************************"
+
+
+
+
+
+mount -t iso9660 -o loop /dev/sr0 cdrom
+mount -t squashfs -o loop /cdrom/live/filesystem.squashfs /kaynak
+#cp -prfv /kaynak/* /hedef/
+ls /kaynak/ | xargs -n1 -P$(nproc) -I% /usr/bin/rsync -ravhHAX --info=progress2 /kaynak/% /hedef/ &>/dev/null|| fallback
+cp /cdrom/boot/initrd.img /hedef/boot/initrd.img-$(uname -r)
+cp /cdrom/boot/vmlinuz /hedef/boot/vmlinuz-$(uname -r)
+cp /hedef/etc/kernel-config /hedef/boot/config-$(uname -r)
+
+
+mkdir -p /hedef/dev
+mkdir -p /hedef/sys
+mkdir -p /hedef/proc
+mkdir -p /hedef/run
+mkdir -p /hedef/tmp
+
+mount --bind /dev /hedef/dev
+mount --bind /sys /hedef/sys
+mount --bind /proc /hedef/proc
+mount --bind /run /hedef/run
+mount --bind /tmp /hedef/tmp
+chroot /hedef /bin/busybox --install -s /bin
+
+#**********servisler ekleniyor*************
+##chroot /hedef /etc/init.d/agettyinstall
+#chroot /hedef rc-update add loadkeys default
+
+
+#chroot /hedef rc-update add elogind default
+#chroot /hedef rc-update add dbus default
+#chroot /hedef rc-update add polkit default
+##rc-update add eudev default
+##rc-update add hostname default
+#rc-update add udhcpc default
+
+
+cp /hedef/etc/skel/.xinitrc /hedef/root/
+cp /hedef/etc/skel/.bashrc /hedef/root/
+cp /hedef/etc/skel/.profile /hedef/root/
+
+##rm /hedef/etc/init.d/agettyinstall
+
+#initrd oluşturuluyor.
+chroot /hedef /usr/sbin/update-initramfs -u -k $(uname -r)
+chroot /hedef grub-install --removable --boot-directory=/boot /dev/sda --target=i386-pc
+mkdir -p /hedef/boot/grub
+bid=$(blkid /dev/sda2|cut -d' ' -f2|cut -c 7-42)
+rm -rf /hedef/boot/grub/grub.cfg
+touch /hedef/boot/grub/grub.cfg
+echo "linux /vmlinuz-$(uname -r) init=/sbin/openrc-init root=UUID=${bid} rw quiet">>/hedef/boot/grub/grub.cfg
+echo "initrd /initrd.img-$(uname -r)">>/hedef/boot/grub/grub.cfg
+echo "boot">>/hedef/boot/grub/grub.cfg
+
+#echo root:x:0:0:root:/root:/bin/sh > /hedef/etc/passwd 
+#chroot /hedef chmod 755 /etc/passwd
+
+chroot /hedef useradd by -m -s /bin/sh  -d /home/by
+chroot /hedef echo -e "1\n1\n"|chroot /hedef passwd by
+
+for grp in users tty wheel cdrom audio dip video plugdev netdev; do
+    chroot /hedef usermod -aG $grp by || true
+done
+chroot /hedef userdel -r live
+#chroot /hedef echo -e "1\n1\n"|chroot /hedef passwd root
+chroot /hedef mv /bin/su /bin/su-old
+chroot /hedef /bin/bps -r live-installer
+#umount -f -R /hedef/dev
+#umount -f -R /hedef/sys
+#umount -f -R /hedef/proc
+#umount -f -R /hedef/run
+#umount -f -R /hedef/tmp
+#umount -f -R /hedef/boot
+umount -f -R /hedef/* || true
+sync  || fallback
+
+if [[ "$debug" != "false" ]] ; then
+    PS1="\[\033[32;1m\]>>>\[\033[;0m\]" /bin/bash --norc --noprofile
+else
+    echo "Installation done. System restarting in 3 seconds. Press any key to restart immediately."
+    read -t 3 -n 1 -s
+fi
+if [[ $UID -eq 0 ]] ; then
+    echo b > /proc/sysrq-trigger
+else
+    exit 0
+fi

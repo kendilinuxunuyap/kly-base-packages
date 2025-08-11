@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+version="2.12.6"
+name="libxml2"
+depends="glibc,acl,openssl,libtool,icu"
+builddepend="python3"
+description="XML C parser and toolkit"
+source="https://github.com/GNOME/libxml2/archive/refs/tags/v${version}.tar.gz"
+groups="dev.libs"
+setup()
+{
+	cd $SOURCEDIR
+	autoreconf -fvi
+	#NOCONFIGURE=1 ./autogen.sh
+
+	./configure --prefix=/usr \
+		--libdir=/usr/lib64 \
+		--with-history \
+		--with-icu \
+		--with-legacy \
+		--with-threads
+
+
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+	
+	mkdir -p $DESTDIR/usr/lib64/python3.11
+	mv $DESTDIR/usr/lib/* $DESTDIR/usr/lib64/
+	rm -rf $DESTDIR/usr/lib
+}
+
+

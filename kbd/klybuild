@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+name="kbd"
+version="2.6.4"
+description="Keytable files and keyboard utilities"
+source="https://www.kernel.org/pub/linux/utils/kbd/kbd-${version}.tar.gz"
+depends="pam"
+makedepend="flex,autoconf,automake"
+group="sys.apps"
+
+
+setup(){
+	cp $SOURCEDIR/files/ /tmp/kly/build/
+	
+    cd $SOURCEDIR
+    autoreconf -fvi
+    ./configure --prefix=/usr \
+    	--sysconfdir=/etc \
+    	--datadir=/usr/share/kbd \
+		--enable-optional-progs
+}
+
+build(){
+	cd ../$name-$version
+	pwd
+    make KEYCODES_PROGS=yes RESIZECONS_PROGS=yes
+}
+
+package(){
+    make DESTDIR=${DESTDIR} install
+    install -Dm755 ../files/loadkeys.initd "$DESTDIR"/etc/init.d/loadkeys
+	install -Dm644 ../files/loadkeys.confd "$DESTDIR"/etc/conf.d/loadkeys
+}
+

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+name="file"
+version="5.45"
+description="Identify a files format by scanning binary data for patterns"
+source="http://ftp.astron.com/pub/file/file-${version}.tar.gz"
+group="sys.apps"
+depends=""
+
+setup(){
+    cd $SOURCEDIR
+    ./configure --prefix=/usr \
+        --libdir=/usr/lib64 \
+        --enable-static \
+        --enable-elf \
+        --enable-elf-core \
+		--enable-zlib \
+		--enable-bzlib
+}
+
+build(){
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+}

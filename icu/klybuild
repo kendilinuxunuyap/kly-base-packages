@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+name="icu"
+version="74-2"
+description="icu International Components for Unicode"
+source=("https://github.com/unicode-org/icu/releases/download/release-${version}/icu4c-74_2-src.tgz")
+depends=()
+group=(dev.libs)
+
+
+setup(){
+    cd $SOURCEDIR/source
+    ./configure --prefix=/usr \
+        --libdir=/usr/lib64/
+}
+
+build(){
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+    chmod +x "$DESTDIR"/usr/bin/icu-config
+}
+

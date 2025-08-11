@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+name="audit"
+version='3.1.1'
+depends=""
+description="servis yöneticisi"
+source="https://github.com/linux-audit/audit-userspace/archive/refs/tags/v$version.tar.gz"
+groups="sys.process"
+setup()
+{
+	cp -prvf $PACKAGEDIR/files/ $SOURCEDIR
+	cd $SOURCEDIR
+	autoreconf -fv --install
+	cd $BUILDDIR
+	../${name}-${version}/configure --prefix=/usr \
+		--sysconfdir=/etc \
+		--libdir=/usr/lib64 \
+		--disable-zos-remote \
+		--disable-listener \
+		--disable-systemd \
+		--disable-gssapi-krb5 \
+		--enable-shared=audit \
+		--with-arm \
+		--with-aarch64\
+		--without-python \
+		--without-python3 \
+		--with-libcap-ng=no 
+		    
+     
+}
+build()
+{
+	make
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+	install -Dm755 ../files/auditd.initd "$DESTDIR"/etc/init.d/auditd
+	install -Dm755 ../files/auditd.confd "$DESTDIR"/etc/conf.d/auditd
+}
+
+

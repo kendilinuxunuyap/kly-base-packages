@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+name="kernel"
+version="6.10.8"
+description="Linux kernel"
+source="https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$version.tar.xz"
+depends=""
+builddepend="rsync,bc,cpio,gettext,elfutils,pahole,perl,python,tar,xz-utils"
+group="sys.kernel"
+
+setup(){
+
+	cp -prvf $PACKAGEDIR/files/ /tmp/bps/build/
+	cd $SOURCEDIR
+	
+	patch -Np1 -i ../files/patch-$version
+	cp ../files/config .config
+	make olddefconfig
+
+}
+
+build(){
+	make bzImage -j$(nproc)
+	make modules -j$(nproc)
+}
+
+package(){
+
+    #-----------------------------
+    arch="x86"
+	kernelbuilddir="${DESTDIR}/lib/modules/${version}/build"
+	
+	# install bzImage
+	mkdir -p "$DESTDIR/boot"
+	install -Dm644 "$(make -s image_name)" "$DESTDIR/boot/vmlinuz-${version}"
+	#make INSTALL_PATH=$DESTDIR install ARCH=amd64
+
+	# install modules
+	mkdir -p "${DESTDIR}/lib/modules/${version}"
+	mkdir -p "$DESTDIR/usr/src"
+	
+	mkdir -p ${DESTDIR}/lib/modules/${version}/build
+	
+	
+	make INSTALL_MOD_PATH=$DESTDIR modules_install INSTALL_MOD_STRIP=1 -j$(nproc)
+	
+	rm "${DESTDIR}/lib/modules/${version}"/{source,build} || true
+	depmod --all --verbose --basedir="$DESTDIR" "${version}" || true
+	
+	# install build directories
+	install .config "$DESTDIR/boot/config-${version}"
+	install -Dt "$kernelbuilddir/kernel" -m644 kernel/Makefile
+	install -Dt "$kernelbuilddir/arch/$arch" -m644 arch/$arch/Makefile
+	cp -t "$kernelbuilddir" -a scripts
+	install -Dt "$kernelbuilddir/tools/objtool" tools/objtool/objtool
+	mkdir -p "$kernelbuilddir"/{fs/xfs,mm}
+	ln -s "../../lib/modules/${version}/build" "$DESTDIR/usr/src/linux-headers-${version}"
+	install -Dt "$kernelbuilddir" -m644 Makefile Module.symvers System.map vmlinux
+
+	# install modules
+    	mkdir -p "$kernelbuilddir" "$kernelbuilddir/arch/$arch"
+    	cp -v -t "$kernelbuilddir" -a include
+   	cp -v -t "$kernelbuilddir/arch/$arch" -a arch/$arch/include
+    	install -Dt "$kernelbuilddir/arch/$arch/kernel" -m644 arch/$arch/kernel/asm-offsets.*
+    	install -Dt "$kernelbuilddir/drivers/md" -m644 drivers/md/*.h
+    	install -Dt "$kernelbuilddir/net/mac80211" -m644 net/mac80211/*.h
+    	install -Dt "$kernelbuilddir/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+    	install -Dt "$kernelbuilddir/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+    	install -Dt "$kernelbuilddir/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+    	install -Dt "$kernelbuilddir/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+    	# https://bugs.archlinux.org/task/71392
+    	install -Dt "$kernelbuilddir/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+
+	find . -name 'Kconfig*' -exec install -Dm644 {} "$kernelbuilddir/{}" \;
+	
+	# clearing
+	find -L "$kernelbuilddir" -type l -printf 'Removing %P\n' -delete
+	find "$kernelbuilddir" -type f -name '*.o' -printf 'Removing %P\n' -delete
+
+
+if [[ -d "$kernelbuilddir" ]] ; then
+    while read -rd '' file; do
+        case "$(file -Sib "$file")" in
+            application/x-sharedlib\;*)      # Libraries (.so)
+                strip "$file" ;;
+            application/x-executable\;*)     # Binaries
+                strip "$file" ;;
+            application/x-pie-executable\;*) # Relocatable binaries
+                strip "$file" ;;
+        esac
+    done < <(find "$kernelbuilddir" -type f -perm -u+x ! -name vmlinux -print0)
+
+fi
+
+if [[ -f "$kernelbuilddir/vmlinux" ]] ; then
+    echo "Stripping vmlinux..."
+    strip "$kernelbuilddir/vmlinux"
+fi
+	
+	echo "Adding symlink..."
+	mkdir -p "$DESTDIR/usr/src"
+	ln -sr "$kernelbuilddir" "$DESTDIR/usr/src/linux"
+
+    
+    #------------------------------
+    mv -vf System.map $DESTDIR/boot/System.map-$version
+    find ${DESTDIR}/ -iname "*" -exec unxz {} \;
+    depmod -b "$DESTDIR" -F $DESTDIR/boot/System.map-$version $version
+}

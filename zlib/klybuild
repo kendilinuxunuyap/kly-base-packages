@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+version="1.3"
+name="zlib"
+depends="glibc,readline,ncurses,flex"
+description="Compression library implementing the deflate compression method found in gzip and PKZIP"
+source="https://github.com/madler/zlib/archive/refs/tags/v$version.tar.gz"
+groups="app.arch"
+setup()
+{
+	cd $SOURCEDIR
+	./configure --prefix=/usr \
+		--libdir=/usr/lib64
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install pkgconfigdir="/usr/lib64/pkgconfig" DESTDIR=$DESTDIR
+}
+
+

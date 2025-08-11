@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+version="3.2.14"
+name="eudev"
+depends="glibc,readline,ncurses,gperf"
+description="modül ve sistem iletişimi sağlayan paket"
+source="https://github.com/eudev-project/eudev/releases/download/v${version}/${name}-${version}.tar.gz"
+groups="sys.fs"
+setup()
+{
+	cp -prvf $PACKAGEDIR/files /tmp/kly/build/
+
+	cd $SOURCEDIR
+	./configure --prefix=/usr \
+		--bindir=/sbin \
+		--sbindir=/sbin \
+		--libdir=/lib64 \
+		--disable-manpages \
+		--disable-static \
+		--disable-selinux \
+		--enable-modules \
+		--enable-kmod \
+		--sysconfdir=/etc \
+		--exec-prefix=/ \
+		--with-rootprefix=/ \
+		--with-rootrundir=/run \
+		--with-rootlibexecdir=/lib64/udev \
+		--enable-split-usr 
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+	mkdir -p ${DESTDIR}/usr/share/initramfs-tools/{hooks,scripts}
+	mkdir -p ${DESTDIR}/usr/share/initramfs-tools/scripts/init-{top,bottom}
+
+
+	install ../files/eudev.hook ${DESTDIR}/usr/share/initramfs-tools/hooks/udev
+	install ../files/eudev.init-top  ${DESTDIR}/usr/share/initramfs-tools/scripts/init-top/udev
+	install ../files/eudev.init-bottom ${DESTDIR}/usr/share/initramfs-tools/scripts/init-bottom/udev
+
+	cd ${DESTDIR}
+	mkdir -p bin
+	cd bin
+	ln -s ../sbin/udevadm udevadm
+	ln -s ../sbin/udevd udevd
+	mkdir -p  ${DESTDIR}/usr/lib64/pkgconfig/
+	cd ${DESTDIR}/usr/lib64/pkgconfig/
+	ln -s ../../../lib64/pkgconfig/libudev.pc libudev.pc
+	#ln -sv libudev.pc "$DESTDIR/usr/lib64/pkgconfig/libudev.pc"
+}
+
+

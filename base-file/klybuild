@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+version="1.0"
+name="base-file"
+depends=""
+description="sistemin temel yapısı"
+source=""
+
+setup(){
+	cp -prfv $PACKAGEDIR/files/*  ${DESTDIR}/
+}
+build(){
+echo ""
+}
+package(){
+chmod 755 $BUILDDIR/etc/passwd
+}

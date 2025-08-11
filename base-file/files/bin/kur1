@@ -1,0 +1,213 @@
+#!/bin/sh
+kurulum()
+{
+partitioning="true"
+debug=false
+DISK=${installdisk/*\//}
+ #########################################################
+    if echo ${DISK} | grep nvme ; then
+        DISKX="${DISK}p"
+    else
+        DISKX=${DISK}
+    fi
+ ############################################################
+
+echo "Kurulum Yapılacak Disk $DISK"
+
+fallback(){
+        echo -e "\033[31;1mInstallation failed.\033[;0m"
+        echo -e "Creating a shell for debuging. Good luck :D"
+        PS1="\[\033[32;1m\]>>>\[\033[;0m\]" /bin/bash --norc --noprofile
+        if [[ $$ -eq 0 ]] ; then
+            echo o > /proc/sysrq-trigger
+        else
+            exit 1
+        fi
+}
+if [[ $UID -eq 0 ]] ; then
+    mount -t devtmpfs devtmpfs /dev || true
+    mount -t proc proc /proc || true
+    mount -t sysfs sysfs /sys || true
+    if [[ -d /sys/firmware/efi ]] ; then
+    	mount -t efivarfs efivars /sys/firmware/efi/efivars || true
+    fi
+fi
+
+mkdir -p hedef
+mkdir -p kaynak
+mkdir -p cdrom
+if [[ ! -d /run/live/rootfs/filesystem.squashfs ]] ; then
+mount -t iso9660 -o loop /dev/sr0 cdrom
+mount -t squashfs -o loop /cdrom/live/filesystem.squashfs /kaynak
+else
+mount /dev/loop0 /kaynak || true
+fi
+
+echo "*********************disk bölümleri biçimlendiriliyor ******************************"
+#--------------------------------------------------------------------------------------------
+
+if [[ "$partitioning" == "true" ]] ; then
+#    dd if=/dev/zero of=/dev/${DISK} bs=512 count=1
+    sync && sleep 1
+    
+     if [[ -d /sys/firmware/efi ]] ; then
+        #yes | parted /dev/${DISK} mktable gpt || fallback
+        #yes | parted /dev/${DISK} mkpart primary fat32 1 "100MB" || fallback
+        #yes | parted /dev/${DISK} mkpart primary fat32 100MB "100%" || fallback
+        sync && sleep 1
+        yes | mkfs.vfat $installbootpartition || fallback
+        sync && sleep 1
+        yes | mkfs.ext4  $installsystempartition || fallback
+        yes | parted /dev/${DISK} set 1 esp on || fallback
+        sync && sleep 1
+        mount $installsystempartition  /hedef || fallback
+        mkdir -p /hedef/boot/efi || true
+        mount $installbootpartition /hedef/boot/efi  || fallback
+    else
+   
+        #yes | parted /dev/${DISK} mktable msdos || fallback
+        #yes | parted /dev/${DISK} mkpart primary fat32 1 "100%" || fallback
+        sync && sleep 1
+        yes |e2fsck -f $installsystempartition
+        sync && sleep 1
+	yes |tune2fs -O ^metadata_csum $installsystempartition
+	sync && sleep 1
+        yes | mkfs.ext4  $installsystempartition || fallback
+        yes | parted /dev/${DISK} set 1 boot on || fallback
+        sync && sleep 1
+        mount $installsystempartition  /hedef || fallback
+        mkdir -p /hedef/boot
+    fi
+else
+    echo "Please input rootfs part (example sda2)"
+    read rootfs
+    echo "Please input mbr (example sda)"
+    read DISK
+    mount /dev/$rootfs /hedef
+    if [[ -d /sys/firmware/efi ]] ; then
+        echo "Please input efi part (example sda1)"
+        read efifs
+        mkdir -p /hedef/boot/efi
+        mount /dev/$efifs /hedef/boot/efi
+    fi
+fi
+ 
+#-------------------------------------------------------------------------------------------------
+echo "********************* kurulum başladı******************************"
+#cp -prfv /kaynak/* /hedef/
+#rsync -axHAWXS --numeric-ids --info=progress2 /kaynak/ /hedef/
+
+#*************************************************************************************
+echo -e "\033[31mSistem yuklenmeye baslandi. Tahmini 3-5 dakika sürecektir.. Lutfen bekleyiniz.....\033[0m"
+#echo "Sistem yuklenmeye baslandi. Tahmini 3-5 dakika sürecektir..Lutfen bekleyiniz....."
+#echo "........................................................................................................."
+echo -e "\033[32m...............................................................................................\033[0m"
+#ls /kaynak/ | xargs -n1 -P$(nproc) -I% /usr/bin/rsync -ravhHAX --info=progress2 /kaynak/% /hedef/ &>/dev/null|| fallback
+#rsync -ravhHAX --progress --stats /kaynak/ /hedef/ &>/dev/null|| fallback
+rsync -ravhHAX  /kaynak/* /hedef/ &>/dev/null|| fallback
+#rm -rf /hedef/*
+#unsquashfs -d /hedef/ /run/live/medium/live/filesystem.squashfs  || fallback
+echo -e "\033[32m...............................................................................................\033[0m"
+echo -e "\033[31mSistem yuklenmesi tamamlaniyor....\033[0m"
+echo -e "\033[32m...............................................................................................\033[0m"
+echo -e "\033[31mSon ayarlar tamamlaniyor....\033[0m"
+#*************************************************************************************
+cp /run/live/medium/boot/initrd.img /hedef/boot/initrd.img-$(uname -r)
+cp /run/live/medium/boot/vmlinuz /hedef/boot/vmlinuz-$(uname -r)
+cp /hedef/etc/kernel-config /hedef/boot/config-$(uname -r)
+sync
+
+if [[ "$partitioning" == "true" ]] ; then
+    if [[ -d /sys/firmware/efi ]] ; then
+        echo "${installsystempartition} /               ext4    errors=remount-ro        0       1" > /hedef/etc/fstab  || fallback
+        echo "${installbootpartition}/boot/efi       vfat    umask=0077               0       0" >> /hedef/etc/fstab  || fallback
+    else
+        echo "${installsystempartition} /               ext4    errors=remount-ro        0       1" > /hedef/etc/fstab  || fallback
+    fi
+else
+    echo "Please write fstab file. Press any key to open editor."
+    read -n 1 -s
+    nano /hedef/etc/fstab
+fi
+
+for i in dev sys proc run 
+do
+    mkdir -p /hedef/$i || true 
+    mount --bind /$i /hedef/$i  || fallback
+done
+if [[ -d /sys/firmware/efi ]] ; then
+    mount --bind /sys/firmware/efi/efivars /hedef/sys/firmware/efi/efivars || fallback
+fi
+
+#chroot /hedef /bin/busybox --install -s /bin
+#chroot /hedef mv /bin/tar /bin/xtar
+cp /hedef/etc/skel/.xinitrc /hedef/root/
+cp /hedef/etc/skel/.bashrc /hedef/root/
+cp /hedef/etc/skel/.profile /hedef/root/
+
+
+chroot /hedef /usr/sbin/update-initramfs -u -k $(uname -r)
+#chroot /hedef grub-install --removable --boot-directory=/boot /dev/${DISK} --hedef=i386-pc
+rm -rf /hedef/boot/grub/grub.cfg
+
+if [[ -d /sys/firmware/efi ]] ; then
+    chroot /hedef mount -t efivarfs efivarfs /sys/firmware/efi/efivars || true
+    chroot /hedef grub-install /dev/${DISK} --target=x86_64-efi || fallback
+else
+    chroot /hedef grub-install /dev/${DISK} --target=i386-pc || fallback
+fi
+
+#mkdir -p /hedef/boot/grub
+#bid=$(blkid ${installsystempartition}|cut -d' ' -f2|cut -c 7-42)
+#rm -rf /hedef/boot/grub/grub.cfg
+#touch /hedef/boot/grub/grub.cfg
+#echo "linux /boot/vmlinuz-$(uname -r) init=/sbin/openrc-init root=UUID=${bid} rw quiet">>/hedef/boot/grub/grub.cfg
+#echo "initrd /boot/initrd.img-$(uname -r)">>/hedef/boot/grub/grub.cfg
+#echo "boot">>/hedef/boot/grub/grub.cfg
+#echo "grub.cfg oluştu"
+#sleep 10
+#echo root:x:0:0:root:/root:/bin/sh > /hedef/etc/passwd 
+#chroot /hedef chmod 755 /etc/passwd
+chroot /hedef echo -e "$installrootpasswd\n$installrootpasswd\n"|chroot /hedef passwd root
+
+chroot /hedef useradd $installusername -m -s /bin/sh  -d /home/$installusername
+chroot /hedef echo -e "$installuserpasswd\n$installuserpasswd\n"|chroot /hedef passwd $installusername
+
+for grp in users tty wheel cdrom audio dip video plugdev netdev; do
+    chroot /hedef usermod -aG $grp $installusername || true
+done
+chroot /hedef userdel -r live
+
+chroot /hedef mv /bin/su /bin/su-old
+#chroot /hedef /bin/bps -r live-installer
+cd /hedef/sbin
+rm -f init
+ln -s openrc-init init
+cd -
+chroot /hedef grub-mkconfig -o /boot/grub/grub.cfg
+chroot /hedef update-grub  || fallback
+echo "grub update edildi"
+sleep 10
+
+
+if [[ -d /sys/firmware/efi ]] ; then
+      umount -lf /hedef/sys/firmware/efi/efivars/
+fi
+
+
+umount -f -R /hedef/* || true
+sync  || fallback
+
+if [[ "$debug" != "false" ]] ; then
+    PS1="\[\033[32;1m\]>>>\[\033[;0m\]" /bin/bash --norc --noprofile
+else
+    echo "Installation done. System restarting in 3 seconds. Press any key to restart immediately."
+    read -t 3 -n 1 -s
+fi
+if [[ $UID -eq 0 ]] ; then
+    echo b > /proc/sysrq-trigger
+else
+    exit 0
+fi
+
+}

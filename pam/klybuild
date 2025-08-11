@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+name="pam"
+version="1.6.0"
+depends="libtirpc,libxcrypt,libnsl,audit"
+description="PAM (Pluggable Authentication Modules) library'"
+source="https://github.com/linux-pam/linux-pam/releases/download/v$version/Linux-PAM-$version.tar.xz"
+groups="sys.libs"
+
+setup()
+{
+	cd $SOURCEDIR
+    ./configure --prefix=/usr \
+        --sbindir=/usr/sbin \
+        --libdir=/usr/lib64 \
+        --enable-securedir=/usr/lib64/security \
+        --enable-static \
+        --enable-shared \
+        --disable-nls \
+        --disable-selinux \
+        --disable-db
+		    
+     
+}
+build()
+{
+	make
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+	chmod +s "$DESTDIR"/usr/sbin/unix_chkpwd
+}
+
+

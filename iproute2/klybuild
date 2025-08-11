@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+name="iproute2"
+version="6.10.0"
+description="GNU regular expression matcher"
+source="https://mirrors.edge.kernel.org/pub/linux/utils/net/iproute2/iproute2-6.10.0.tar.xz"
+depends=""
+groups="net.misc"
+
+setup(){
+	cp -prvf ${PACKAGEDIR}/files/ $SOURCEDIR/
+	cd $SOURCEDIR
+	patch -Np1 -i $SOURCEDIR/files/0001-make-iproute2-fhs-compliant.patch
+	patch -Np1 -i $SOURCEDIR/files/0002-bdb-5-3.patch
+	sed -i 's/-Werror//' Makefile
+	export CFLAGS+=' -ffat-lto-objects'
+	./configure
+}
+build(){
+	make DBM_INCLUDE='/usr/include/db5.3'
+}
+package(){
+	make DESTDIR=$DESTDIR SBINDIR="/sbin" install
+}
+

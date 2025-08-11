@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+version="3.2.7"
+name="rsync"
+depends="glibc,acl,openssl"
+description="shell ve network copy"
+source="https://download.samba.org/pub/rsync/src/${name}-${version}.tar.gz"
+groups="net.misc"
+
+setup()
+{
+	cd $SOURCEDIR
+	./configure --prefix=/usr \
+        --libdir=/lib64/ \
+        --with-included-popt \
+        --with-included-zlib \
+        --disable-xxhash \
+    	--disable-lz4
+	
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+}
+
+

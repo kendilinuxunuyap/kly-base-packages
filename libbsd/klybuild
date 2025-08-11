@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+name="libbsd"
+version="0.11.7"
+description="Library to provide useful functions commonly found on BSD systems"
+source="https://libbsd.freedesktop.org/releases/libbsd-$version.tar.xz"
+depends=""
+group="dev.libs"
+
+setup(){
+	cd $SOURCEDIR
+	autoreconf -fvi
+	./configure --prefix=/usr --libdir=/usr/lib64
+}
+build(){
+	make
+}
+package(){
+	make install DESTDIR=$DESTDIR
+}

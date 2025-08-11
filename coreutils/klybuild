@@ -17,7 +17,7 @@ setup(){
         --enable-largefile \
         --enable-single-binary=symlinks \
         --enable-no-install-program=groups,hostname,kill,uptime \
-        --without-openssl
+        --without-openssl --without-selinux
 
 }
 

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+version="4.2"
+name="dosfstools"
+depends="glibc"
+description="DOS filesystem tools - provides mkdosfs, mkfs.msdos, mkfs.vfat"
+source="https://github.com/dosfstools/dosfstools/archive/refs/tags/v$version.tar.gz"
+groups="sys.block"
+setup()
+{
+	cd $SOURCEDIR
+	./autogen.sh
+	./configure --prefix=/usr \
+		--libdir=/usr/lib64/ \
+		--enable-compat-symlinks
+	
+}
+build()
+{
+cd $SOURCEDIR
+	make 
+}
+package()
+{
+cd $SOURCEDIR
+	make install DESTDIR=$DESTDIR
+}
+
+

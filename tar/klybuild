@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+name="tar"
+version="1.35"
+description="Utility used to store, backup, and transport files"
+source="https://ftp.gnu.org/gnu/tar/tar-$version.tar.xz"
+depends="glibc,acl"
+builddepend=""
+groups="app.arch"
+
+setup()
+{
+	cd $SOURCEDIR
+	export FORCE_UNSAFE_CONFIGURE=1
+	./configure --prefix=/usr \
+		--libdir=/usr/lib64 \
+		--sbindir=/usr/bin \
+		--libexecdir=/usr/lib64/tar \
+		--localstatedir=/var \
+		--enable-backup-scripts \
+		--disable-nls \
+		CC="gcc" \
+		LDFLAGS="-static" \
+		CFLAGS="-Os"
+}
+build()
+{
+	make 
+}
+package()
+{
+	make DESTDIR=$DESTDIR install
+}
+
+

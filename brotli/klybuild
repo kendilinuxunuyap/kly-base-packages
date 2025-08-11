@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+version="1.1.0"
+name="brotli"
+depends="glibc,zlib"
+description="Generic-purpose lossless compression algorithm"
+source="https://github.com/google/brotli/archive/refs/tags/v$version.tar.gz"
+groups="sys.apps"
+setup()
+{
+
+    cmake ../${name}-${version} \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DBUILD_SHARED_LIBS=True
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+	mkdir -p $DESTDIR/lib
+	cp -prfv $DESTDIR/usr/lib/x86_64-linux-gnu/* $DESTDIR/lib/
+	
+}
+
+

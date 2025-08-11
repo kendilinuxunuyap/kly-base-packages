@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+version="3.6"
+name="libsepol"
+depends=""
+description="lib"
+source="https://github.com/SELinuxProject/selinux/releases/download/3.6/${name}-${version}.tar.gz"
+
+groups="app.arch"
+setup()
+{
+
+      echo ""
+}
+build()
+{
+	cd $SOURCEDIR
+	make 
+}
+package()
+{
+	cd $SOURCEDIR
+	make install DESTDIR=$DESTDIR
+}
+
+

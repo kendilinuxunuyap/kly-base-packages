@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+version="1.13"
+name="gzip"
+depends=""
+description="Standard GNU compressor"
+source="https://ftp.gnu.org/gnu/gzip/${name}-${version}.zip"
+groups="app.arch"
+setup()
+{
+	export DEFS="NO_ASM"
+	cd $SOURCEDIR
+	autoreconf -fvi
+	./configure --prefix=/usr \
+        --libdir=/usr/lib64/
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+}
+
+

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+version="3.6"
+name="parted"
+depends="glibc"
+description="disks tools"
+source="https://ftp.gnu.org/gnu/parted/parted-${version}.tar.xz"
+groups="sys.block"
+
+setup()
+{
+	cd $SOURCEDIR
+	./configure --prefix=/usr \
+        --libdir=/usr/lib64/ \
+        --sbindir=/usr/bin \
+        --disable-rpath \
+        --disable-device-mapper
+	
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+}
+
+

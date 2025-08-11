@@ -1,0 +1,19 @@
+#!/bin/sh
+echo "*********************eudev çalıştırıldı ******************************"
+/bin/udv
+echo "*********************ek modüller yüklendi ******************************"
+modprobe ext4
+modprobe loop
+modprobe ext4
+mkdir -p /sabitdisk
+#diski bağlayalım
+mount /dev/sda2 sabitdisk
+
+# dev sys proc taşıyalım
+mount --move /dev /sabitdisk/dev
+mount --move /sys /sabitdisk/sys
+mount --move /proc /sabitdisk/proc
+
+# servis yöneticisini çalıştıralım.
+exec switch_root /sabitdisk /init
+/bin/busybox ash

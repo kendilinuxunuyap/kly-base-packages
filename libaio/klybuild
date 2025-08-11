@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+name="libaio"
+version="0.3.113"
+description="Asynchronous input/output library that uses the kernels native interface"
+source="https://pagure.io/libaio/archive/libaio-$version/libaio-libaio-$version.tar.gz"
+depends=""
+builddepend=""
+group="dev.libs"
+
+setup (){
+	echo ""
+}
+
+build(){
+	cd $SOURCEDIR
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+}
+

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+name="expat"
+version="2.6.2"
+vrsn="2_6_2"
+description="An XML parser library"
+source="https://github.com/libexpat/libexpat/releases/download/R_${vrsn}/expat-${version}.tar.bz2"
+depends=""
+builddepend=""
+group="dev.libs"
+
+cd $SOURCEDIR
+setup(){
+	cd $SOURCEDIR
+	#cd ../$name-$version/$name
+    cmake -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=lib64 \
+        -DCMAKE_BUILD_TYPE=None \
+        -DEXPAT_BUILD_DOCS=false \
+        -W no-dev \
+        -B $BUILDDIR
+}
+
+build(){
+    make -C $BUILDDIR
+}
+
+package(){
+    make DESTDIR="$DESTDIR" install -C $BUILDDIR
+}
+

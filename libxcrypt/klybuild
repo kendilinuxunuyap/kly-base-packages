@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+name="libxcrypt"
+version="4.4.36"
+description="libxcrypt"
+source="https://github.com/besser82/libxcrypt/releases/download/v4.4.36/libxcrypt-4.4.36.tar.xz"
+depends=""
+group="net.libs"
+
+setup() {
+	cd $SOURCEDIR
+    ./configure --prefix=/usr \
+        --libdir=/usr/lib64/ \
+        --sbindir=/usr/bin 
+        
+}
+build() {
+    make
+}
+package() {
+    make install DESTDIR=$DESTDIR
+}

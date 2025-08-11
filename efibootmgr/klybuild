@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+name="efibootmgr"
+version="18"
+description="Linux user-space application to modify the Intel Extensible Firmware Interface (EFI) Boot Manager."
+source="https://github.com/rhboot/efibootmgr/archive/refs/tags/$version.tar.gz"
+depends="efivar,popt"
+builddepend=""
+group="sys.boot"
+
+CFLAGS += -Wno-pointer-sign 
+
+setup(){
+	echo ""
+}
+
+build(){
+	cd $SOURCEDIR
+    make sbindir=/usr/bin EFIDIR=/boot/efi PCDIR=/usr/lib64/pkgconfig
+}
+
+package(){
+	EFIDIR="/boot/efi" sbindir=/usr/bin make DESTDIR="$DESTDIR" install
+}
+
+

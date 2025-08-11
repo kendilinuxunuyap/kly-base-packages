@@ -1,0 +1,33 @@
+#!/bin/busybox ash
+/bin/busybox mkdir -p /bin
+/bin/busybox --install -s /bin
+#**********************************
+export PATH=/sbin:/bin:/usr/bin:/usr/sbin:
+
+[ -d /dev ]  || mkdir -m 0755 /dev
+[ -d /root ] || mkdir -m 0700 /root
+[ -d /sys ]  || mkdir /sys
+[ -d /proc ] || mkdir /proc
+mkdir -p /tmp /run
+touch /dev/null
+
+# devtmpfs does not get automounted for initramfs
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t tmpfs tmpfs /tmp
+#******************************************************************************
+for x in $(cat /proc/cmdline); do
+	case $x in
+	init=*)
+		init=${x#init=}
+		echo " bu bir test :${x#init=}"
+		${x#init=}
+		;;
+	esac
+done
+
+echo "initrd başlatıldı"
+
+/bin/busybox ash
+#/bin/bash

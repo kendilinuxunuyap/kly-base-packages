@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+version="1230131"
+name="live-boot"
+depends="glibc,acl,openssl"
+description="shell ve network copy"
+source="https://salsa.debian.org/live-team/live-boot/-/archive/debian/1%2520230131/live-boot-debian-1%2520230131.tar.gz"
+groups="sys.kernel"
+
+setup()
+{
+	echo "test"
+	cd $SOURCEDIR
+}
+build()
+{
+	make 
+}
+package()
+{
+	make install DESTDIR=$DESTDIR
+	sed -i "s/copy_exec \/bin\/mount \/bin/copy_exec \/usr\/bin\/mount \/bin/g" $DESTDIR/usr/share/initramfs-tools/hooks/live
+	sed -i 's|cp -a "\${FILE}" "\${DESTDIR}/\${FILE}"|cp -r --no-preserve=ownership "\${FILE}" "\${DESTDIR}/\${FILE}"|g' \
+	$DESTDIR/usr/share/initramfs-tools/hooks/live
+}
+
+

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+name="cpio"
+version="2.15"
+description="A tool to copy files into or out of a cpio or tar archive"
+source="https://ftp.gnu.org/gnu/cpio/cpio-$version.tar.gz"
+depends="glibc"
+group="app.arch"
+
+setup(){
+    cd $SOURCEDIR
+    CFLAGS+=' -fcommon'
+    ./configure --prefix=/usr
+}
+build(){
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+}

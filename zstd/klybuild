@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+version="1.5.5"
+name="zstd"
+depends="glibc,readline,ncurses"
+description="şıkıştırma kütüphanesi"
+source="https://github.com/facebook/zstd/releases/download/v1.5.5/${name}-${version}.tar.gz"
+groups="libs"
+
+setup()
+{
+	cd $SOURCEDIR
+	
+}
+build()
+{
+	make 
+}
+package()
+{
+	make prefix=/ install DESTDIR=$DESTDIR
+}
+
+

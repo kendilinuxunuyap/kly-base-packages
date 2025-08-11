@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+name="kmod"
+version="32"
+description="library and tools for managing linux kernel modules"
+source="https://mirrors.edge.kernel.org/pub/linux/utils/kernel/kmod/kmod-$version.tar.xz"
+depends="zlib,xz-utils"
+group="sys.apps"
+
+export PATH=$HOME:$PATH
+
+setup(){
+	touch libkmod/docs/gtk-doc.make
+	cd $SOURCEDIR
+	./configure --prefix=/usr \
+		--libdir=/usr/lib64/ \
+		--bindir=/bin \
+		--with-rootlibdir=/lib64 \
+		--with-zlib --with-openssl
+}
+build(){
+make
+}
+package(){
+	make install DESTDIR=$DESTDIR
+	mkdir -p ${DESTDIR}/sbin
+	for i in lsmod rmmod insmod modinfo modprobe depmod; do
+		ln -sf ../bin/kmod "$DESTDIR"/sbin/$i
+	done
+	for i in lsmod modinfo; do
+		ln -s kmod "$DESTDIR"/bin/$i
+	done
+}
+

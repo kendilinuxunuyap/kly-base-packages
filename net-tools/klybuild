@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+name="net-tools"
+version="2.10"
+description="GNU regular expression matcher"
+source="https://sourceforge.net/projects/net-tools/files/net-tools-2.10.tar.xz"
+depends=""
+group="net.misc"
+
+setup(){
+	cd $SOURCEDIR
+export BINDIR='/usr/bin' SBINDIR='/usr/bin'
+}
+build(){
+yes "" | make
+}
+package(){
+make install DESTDIR=$DESTDIR
+# the following is provided by yp-tools
+rm "${DESTDIR}"/usr/bin/{nis,yp}domainname
+# hostname is provided by inetutils
+rm "${DESTDIR}"/usr/bin/{hostname,dnsdomainname,domainname}
+rm -r "${DESTDIR}"/usr/share/man/man1
+}

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+name="popt"
+version="1.19"
+description="A commandline option parser"
+source="http://ftp.rpm.org/popt/releases/popt-${version%.*}.x/popt-${version}.tar.gz"
+depends=""
+builddepend=""
+group="sys.apps"
+
+setup(){
+	cd $SOURCEDIR
+	CFLAGS+=" -ffat-lto-objects" ./configure --prefix=/usr
+}
+
+build(){
+	
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+}
+

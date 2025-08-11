@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+name="sed"
+version="4.9"
+description="Super-useful stream editor"
+source="https://ftp.gnu.org/gnu/sed/sed-$version.tar.xz"
+depends="acl"
+group="sys.apps"
+
+setup(){
+    cd $SOURCEDIR
+    ./configure --prefix=/usr \
+        --libdir=/usr/lib64/
+}
+
+build(){
+    make
+}
+
+package(){
+    make install DESTDIR=$DESTDIR
+}
+

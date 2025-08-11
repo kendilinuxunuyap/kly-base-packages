@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+version="0.142"
+name="initramfs-tools"
+depends="glibc,readline,ncurses"
+description="initramfs generate sağlayan paket"
+source="https://salsa.debian.org/kernel-team/initramfs-tools/-/archive/v$version/initramfs-tools-v$version.tar.gz"
+groups="sys.fs"
+
+setup() {
+	cp -prfv $PACKAGEDIR/files/ $SOURCEDIR/
+	cd $SOURCEDIR
+	patch -Np1 < $SOURCEDIR/files/patches/remove-zstd.patch
+	patch -Np1 < $SOURCEDIR/files/patches/remove-logsave.patch
+	patch -Np1 < $SOURCEDIR/files/patches/non-debian.patch
+}
+
+build() {
+	echo ""
+}
+
+package()
+{
+	cat debian/*.install | sed "s/\t/ /g" | tr -s " " | while read line ; do
+	file=$(echo $line | cut -f1 -d" ")
+	target=$(echo $line | cut -f2 -d" ")
+	mkdir -p ${DESTDIR}/$target
+	cp -prvf $file ${DESTDIR}/$target/
+	done
+	# install mkinitramfs
+	cp -pvf mkinitramfs ${DESTDIR}/usr/sbin/mkinitramfs
+	sed -i "s/@BUSYBOX_PACKAGES@/busybox/g" ${DESTDIR}/usr/sbin/mkinitramfs
+	sed -i "s/@BUSYBOX_MIN_VERSION@/1.22.0/g" ${DESTDIR}/usr/sbin/mkinitramfs
+	# Remove debian stuff
+	rm -rvf ${DESTDIR}/etc/kernel
+	install $SOURCEDIR/files/zzz-busybox ${DESTDIR}/usr/share/initramfs-tools/hooks/
+	install $SOURCEDIR/files/modules ${DESTDIR}/usr/share/initramfs-tools/
+	install $SOURCEDIR/files/modules ${DESTDIR}/etc/initramfs-tools/
+	mkdir -p ${DESTDIR}/usr/share/initramfs-tools/conf-hooks.d
+	install $SOURCEDIR/files/conf-hooks.d/busybox ${DESTDIR}/usr/share/initramfs-tools/conf-hooks.d/
+	mkdir -p ${DESTDIR}/etc/initramfs-tools/scripts
+	${DESTDIR}/sbin/ldconfig -r ${DESTDIR}
+}
