@@ -1,11 +1,11 @@
 #!/sbin/openrc-run
 
-description="load modules runsystemd"
+description="Start rootfspermit Service"
 
-name="runsystemda"
-command="/etc/local.d/runsystemd"
+name="rootfspermit"
+command="/etc/local.d/rootfspermit"
 command_args=""
-pidfile="/run/runsystemd.pid"
+pidfile="/run/rootfspermit.pid"
 command_background=true
 depend() {
         after lightdm
