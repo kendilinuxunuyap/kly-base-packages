@@ -7,10 +7,8 @@ depends=""
 group="sys.apps,pam"
 
 setup(){
-	mkdir -p /tmp/kly/build/files
-	cp ${dizin}/${paket}/files/* /tmp/kly/build/files/
-	mkdir -p /tmp/kly/build/extras
-	cp ${dizin}/${paket}/extras/* /tmp/kly/build/extras/
+	cp -prvf $PACKAGEDIR/files/ /tmp/kly/build/
+	cp -prvf $PACKAGEDIR/extras/ /tmp/kly/build/
 	cd $SOURCEDIR
     meson setup $BUILDDIR \
         --sysconfdir=/etc \
@@ -21,7 +19,7 @@ setup(){
         -Dzsh-completions=true \
         -Dbash-completions=true \
         -Dpam=true \
-	-Dselinux=disabled \
+		-Dselinux=disabled \
         -Dpkgconfig=true
 
 }
@@ -40,10 +38,7 @@ package(){
     rm -f ${DESTDIR}/etc/runlevels/*/*
     rm ${DESTDIR}//etc/init.d/functions.sh
     ln -s ../../lib/rc/sh/functions.sh ${DESTDIR}/etc/init.d/functions.sh
-    # install sysconf script
-    mkdir -p ${DESTDIR}/etc/sysconf.d/
-    install ../files/openrc.sysconf ${DESTDIR}/etc/sysconf.d/openrc
-
+   
     # move /share to /usr/share
     mkdir -p ${DESTDIR}/usr ${DESTDIR}/sbin
     mv ${DESTDIR}/{,usr}/share
@@ -65,11 +60,15 @@ package(){
     install ../files/0modules.init.d ${DESTDIR}/etc/init.d/0modules
     install ../files/0modules.init.d ${DESTDIR}/etc/runlevels/default/0modules
     
+    install ../files/rootfspermit.init.d ${DESTDIR}/etc/init.d/rootfspermit
+    install ../files/rootfspermit.local.d ${DESTDIR}/etc/local.d/rootfspermit
+    
     install ${DESTDIR}/etc/init.d/hostname ${DESTDIR}/etc/runlevels/default/hostname
     cd ${DESTDIR}/etc/init.d/
     ln -s agetty agetty.tty1
     install ${DESTDIR}/etc/init.d/agetty.tty1 ${DESTDIR}/etc/runlevels/default/agetty.tty1
-    #mv  ${DESTDIR}/lib  ${DESTDIR}/lib64
     
+    cd ${DESTDIR}/etc/runlevels/default
+    ln -s ../init.d/rootfspermit rootfspermit
 }
 
