@@ -8,7 +8,4 @@ command_args=""
 pidfile="/run/udv.pid"
 command_background=true
 
-depend() {
-      need net
-}
 

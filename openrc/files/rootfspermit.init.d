@@ -7,6 +7,4 @@ command="/etc/local.d/rootfspermit"
 command_args=""
 pidfile="/run/rootfspermit.pid"
 command_background=true
-depend() {
-        after lightdm
-} 
+
