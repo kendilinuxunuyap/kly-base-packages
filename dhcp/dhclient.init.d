@@ -14,10 +14,28 @@ start()
 {
     ebegin "Starting dhclient networking"
     for DEVICE in /sys/class/net/* ; do
-        ip link set ${DEVICE##*/} up
-        [ ${DEVICE##*/} != lo ] && dhclient ${DEVICE##*/}
+        IFACE=${DEVICE##*/}
+        [ "$IFACE" = "lo" ] && continue
+
+        # Arayüzü UP yap
+        ip link set "$IFACE" up
+
+        # Arayüz hazır olana kadar (timeout 10 saniye)
+        TIMEOUT=10
+        while [ $TIMEOUT -gt 0 ]; do
+            if ip link show "$IFACE" | grep -q "state UP"; then
+                break
+            fi
+            sleep 1
+            TIMEOUT=$((TIMEOUT - 1))
+        done
+
+        # IP yoksa dhclient başlat
+        if ! ip addr show "$IFACE" | grep -q "inet "; then
+            dhclient "$IFACE"
+        fi
     done
-    return 0
+    eend 0
 }
 
 stop()

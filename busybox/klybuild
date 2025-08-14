@@ -29,6 +29,8 @@ package()
     install ../files/udhcpc.openrc ${DESTDIR}/etc/init.d/udhcpc
     cd $DESTDIR/bin&&ln -s busybox hostname
     cd $DESTDIR/bin&&ln -s busybox udhcpc
+    cd $DESTDIR/bin&&ln -s busybox ps
+    cd $DESTDIR/bin&&ln -s busybox which
 }
 
 
